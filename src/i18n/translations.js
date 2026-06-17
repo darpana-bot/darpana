@@ -621,6 +621,256 @@ export const translations = {
         '您在此呼吸的每一息、浮现的每一反思、每一善念 — 我们都作为您对 DARPANA 的奉献而接纳。',
     },
   },
+
+  // ===========================================================================
+  // RUANG RESONANSI — Micro-Feedback Pasca-Sadhana
+  // ===========================================================================
+  resonance: {
+    id: {
+      beforeTitle: 'Sebelum masuk ruang ini',
+      afterTitle: 'Saat ini, setelah sesi',
+      beforeHint: 'Bagaimana frekuensi pikiran Anda sebelum masuk?',
+      afterHint: 'Bagaimana frekuensi Anda saat ini?',
+      state_kacau: 'Berisik / Kacau',
+      state_gelisah: 'Gelisah',
+      state_biasa: 'Biasa Saja',
+      state_tenang: 'Tenang',
+      state_jernih: 'Sangat Jernih',
+      skip: 'Lewati',
+      thanks: 'Terima kasih telah mengamati pergeseran Anda.',
+    },
+    en: {
+      beforeTitle: 'Before entering this space',
+      afterTitle: 'Right now, after the session',
+      beforeHint: 'What was the frequency of your mind before entering?',
+      afterHint: 'What is your frequency right now?',
+      state_kacau: 'Noisy / Chaotic',
+      state_gelisah: 'Restless',
+      state_biasa: 'Neutral',
+      state_tenang: 'Calm',
+      state_jernih: 'Very Clear',
+      skip: 'Skip',
+      thanks: 'Thank you for observing your shift.',
+    },
+    ja: {
+      beforeTitle: 'この空間に入る前',
+      afterTitle: '今、セッションの後',
+      beforeHint: '入る前、心の周波数はどうでしたか？',
+      afterHint: '今のあなたの周波数はどうですか？',
+      state_kacau: '騒がしい / 混乱',
+      state_gelisah: '落ち着かない',
+      state_biasa: '普通',
+      state_tenang: '穏やか',
+      state_jernih: 'とても清明',
+      skip: 'スキップ',
+      thanks: '自分の変化を観察してくれてありがとう。',
+    },
+    zh: {
+      beforeTitle: '进入此空间之前',
+      afterTitle: '此刻，会话之后',
+      beforeHint: '进入前，您心念的频率如何？',
+      afterHint: '此刻您的频率如何？',
+      state_kacau: '嘈杂 / 混乱',
+      state_gelisah: '不安',
+      state_biasa: '一般',
+      state_tenang: '平静',
+      state_jernih: '非常清明',
+      skip: '跳过',
+      thanks: '感谢您观察自己的转变。',
+    },
+  },
+
+  // ===========================================================================
+  // AI RESONANCE — Water Ripple & Lontar Leaf
+  // ===========================================================================
+  aiResonance: {
+    id: {
+      rippleHint: 'Ini beresonansi dengan saya',
+      lontarHint: 'Tuliskan koreksi',
+      lontarPrompt: 'Apa yang bisa diperbaiki dari pantulan ini agar lebih jernih?',
+      lontarSubmit: 'Kirim',
+      lontarCancel: 'Batal',
+      lontarThanks: 'Pantulan Anda telah kami terima. Om Shanti.',
+      rippleThanks: '🎮 Tetesan air telah jatuh ke sumur.',
+    },
+    en: {
+      rippleHint: 'This resonates with me',
+      lontarHint: 'Write a correction',
+      lontarPrompt: 'What could be refined in this reflection to make it clearer?',
+      lontarSubmit: 'Send',
+      lontarCancel: 'Cancel',
+      lontarThanks: 'Your reflection has been received. Om Shanti.',
+      rippleThanks: '🎮 A drop has fallen into the well.',
+    },
+    ja: {
+      rippleHint: 'これに共鳴します',
+      lontarHint: '修正を書く',
+      lontarPrompt: 'この反射をより明澄にするために、何を改善できますか？',
+      lontarSubmit: '送信',
+      lontarCancel: 'キャンセル',
+      lontarThanks: 'あなたの反射を受け取りました。Om Shanti。',
+      rippleThanks: '🎮 雫が井戸に落ちました。',
+    },
+    zh: {
+      rippleHint: '这引起了我的共鸣',
+      lontarHint: '写下修正',
+      lontarPrompt: '此反思可如何改进以更清明？',
+      lontarSubmit: '发送',
+      lontarCancel: '取消',
+      lontarThanks: '您的反思已被接收。Om Shanti。',
+      rippleThanks: '🎮 一滴水已落入井中。',
+    },
+  },
+
+  // ===========================================================================
+  // RTA — Bug Report / System Imbalance
+  // ===========================================================================
+  rta: {
+    id: {
+      title: 'Menjaga Keseimbangan Sistem',
+      subtitle: 'Rta',
+      intro:
+        'Ketika ada sesuatu yang rusak atau tidak seimbang, itu adalah gangguan terhadap Rta — keteraturan kosmis. Anda tidak sedang melapor ke customer service. Anda sedang membantu kami menyeimbangkan kembali Rta di dalam DARPANA.',
+      sectionLabel: 'Di bagian mana keteraturan ini terganggu?',
+      section_peta_sanskara: 'Peta Sanskara',
+      section_ruang_sadhana: 'Ruang Sadhana',
+      section_sumur_akasa: 'Sumur Akasa',
+      section_lainnya: 'Lainnya',
+      descriptionLabel: 'Bantu kami memahaminya:',
+      descriptionPlaceholder: 'Jelaskan apa yang terjadi, apa yang Anda harapkan, dan apa yang muncul...',
+      contextLabel: 'Konteks tambahan (opsional)',
+      contextPlaceholder: 'Tanggal lahir yang Anda input, praktik yang dipilih, pesan error, dll.',
+      submit: 'Kirim Pantulan',
+      submitting: 'Mengirim...',
+      success: 'Pantulan Anda telah diterima. Kami akan segera menyeimbangkan kembali sistem ini. Om Shanti.',
+      backHome: 'Kembali ke Beranda',
+      needSection: 'Silakan pilih bagian yang terganggu.',
+      needDescription: 'Silakan jelaskan gangguan yang Anda alami.',
+    },
+    en: {
+      title: 'Keeping the System in Balance',
+      subtitle: 'Rta',
+      intro:
+        'When something is broken or imbalanced, it is a disturbance of Rta — cosmic order. You are not filing a customer service report. You are helping us restore Rta within DARPANA.',
+      sectionLabel: 'Where was this order disturbed?',
+      section_peta_sanskara: 'Peta Sanskara',
+      section_ruang_sadhana: 'Ruang Sadhana',
+      section_sumur_akasa: 'Sumur Akasa',
+      section_lainnya: 'Other',
+      descriptionLabel: 'Help us understand:',
+      descriptionPlaceholder: 'Describe what happened, what you expected, and what appeared...',
+      contextLabel: 'Additional context (optional)',
+      contextPlaceholder: 'Birth date you entered, practice chosen, error message, etc.',
+      submit: 'Send Reflection',
+      submitting: 'Sending...',
+      success: 'Your reflection has been received. We will restore balance to this system soon. Om Shanti.',
+      backHome: 'Back to Home',
+      needSection: 'Please select the disturbed section.',
+      needDescription: 'Please describe the disturbance you experienced.',
+    },
+    ja: {
+      title: 'システムの均衡を守る',
+      subtitle: 'Rta',
+      intro:
+        '何かが壊れたり不均衡になったりする時、それはRta — 宇宙の秩序 — の乱れです。あなたはカスタマーサービスに報告しているのではありません。DARPANA内のRtaを再均衡させるのを助けています。',
+      sectionLabel: 'どこで秩序が乱れましたか？',
+      section_peta_sanskara: 'Peta Sanskara',
+      section_ruang_sadhana: 'Ruang Sadhana',
+      section_sumur_akasa: 'Sumur Akasa',
+      section_lainnya: 'その他',
+      descriptionLabel: '理解を助けてください：',
+      descriptionPlaceholder: '何が起きたか、期待したこと、現れたことを説明してください...',
+      contextLabel: '追加の文脈（任意）',
+      contextPlaceholder: '入力した生年月日、選んだプラクティス、エラーメッセージなど',
+      submit: '反射を送る',
+      submitting: '送信中...',
+      success: 'あなたの反射を受け取りました。まもなくこのシステムの均衡を取り戻します。Om Shanti.',
+      backHome: 'ホームに戻る',
+      needSection: '乱れたセクションを選んでください。',
+      needDescription: '経験した乱れを説明してください。',
+    },
+    zh: {
+      title: '维护系统平衡',
+      subtitle: 'Rta',
+      intro:
+        '当某物损坏或失衡时，那是对 Rta — 宇宙秩序 — 的扰乱。您不是在提交客服报告。您是在帮助我们恢复 DARPANA 内的 Rta。',
+      sectionLabel: '此秩序在何处被扰乱？',
+      section_peta_sanskara: 'Peta Sanskara',
+      section_ruang_sadhana: 'Ruang Sadhana',
+      section_sumur_akasa: 'Sumur Akasa',
+      section_lainnya: '其他',
+      descriptionLabel: '帮助我们理解：',
+      descriptionPlaceholder: '描述发生了什么、您期望什么、出现了什么...',
+      contextLabel: '额外上下文（可选）',
+      contextPlaceholder: '您输入的出生日期、选择的练习、错误消息等',
+      submit: '发送反思',
+      submitting: '发送中...',
+      success: '您的反思已被接收。我们将尽快恢复此系统的平衡。Om Shanti.',
+      backHome: '返回首页',
+      needSection: '请选择被扰乱的章节。',
+      needDescription: '请描述您经历的扰乱。',
+    },
+  },
+
+  // ===========================================================================
+  // JEJAK EVOLUSI — The Changelog of Consciousness
+  // ===========================================================================
+  evolution: {
+    id: {
+      title: 'Jejak Evolusi',
+      subtitle: 'The Changelog of Consciousness',
+      intro:
+        'DARPANA adalah organisme hidup. Setiap perbaikan lahir dari resonansi komunitas — bukan dari roadmap marketing. Inilah jejak evolusi kami, ditulis dengan jujur.',
+      noEntries: 'Belum ada jejak. Evolusi baru saja dimulai.',
+      basedOnResonance: 'Berdasarkan resonansi komunitas',
+    },
+    en: {
+      title: 'Trail of Evolution',
+      subtitle: 'The Changelog of Consciousness',
+      intro:
+        'DARPANA is a living organism. Every improvement is born from community resonance — not from a marketing roadmap. This is our evolution trail, written honestly.',
+      noEntries: 'No trails yet. Evolution has just begun.',
+      basedOnResonance: 'Based on community resonance',
+    },
+    ja: {
+      title: '進化の軌跡',
+      subtitle: 'The Changelog of Consciousness',
+      intro:
+        'DARPANAは生きた有機体です。すべての改善はコミュニティの共鳴から生まれます — マーケティングのロードマップからではありません。これが私たちの進化の軌跡、正直に書かれています。',
+      noEntries: 'まだ軌跡はありません。進化は始まったばかりです。',
+      basedOnResonance: 'コミュニティの共鳴に基づく',
+    },
+    zh: {
+      title: '进化之迹',
+      subtitle: 'The Changelog of Consciousness',
+      intro:
+        'DARPANA 是一个活的有机体。每一次改进都源于社区共鸣 — 而非营销路线图。这是我们的进化之迹，诚实书写。',
+      noEntries: '尚无痕迹。进化刚刚开始。',
+      basedOnResonance: '基于社区共鸣',
+    },
+  },
+
+  // ===========================================================================
+  // HOME — subtle links labels
+  // ===========================================================================
+  homeLinks: {
+    id: {
+      rta: 'Menjaga Keseimbangan Sistem (Rta)',
+      evolution: 'Jejak Evolusi',
+    },
+    en: {
+      rta: 'Keeping System Balance (Rta)',
+      evolution: 'Trail of Evolution',
+    },
+    ja: {
+      rta: 'システムの均衡を守る (Rta)',
+      evolution: '進化の軌跡',
+    },
+    zh: {
+      rta: '维护系统平衡 (Rta)',
+      evolution: '进化之迹',
+    },
+  },
 }
 
 // ---------------------------------------------------------------------------

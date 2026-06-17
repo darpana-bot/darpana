@@ -39,6 +39,9 @@ desktop.ini
 # Z.ai SDK config (jangan commit ke public repo)
 .z-ai-config
 
+# Resonance data (feedback logs - ephemeral, jangan commit)
+data/
+
 # Cache
 .cache/
 .parcel-cache/

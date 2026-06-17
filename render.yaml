@@ -1,19 +1,35 @@
+# =============================================================================
+# DARPANA — Render Blueprint
+# =============================================================================
+# Deploy ke Render sebagai single web service:
+#   - Build: npm install + npm run build (Vite generate dist/)
+#   - Start: node server.js (Express serve API + static frontend)
+#
+# Cara pakai:
+#   1. Push project ini ke GitHub
+#   2. Buka https://render.com → New → Blueprint
+#   3. Pilih repo GitHub Anda
+#   4. Render akan auto-detect render.yaml ini
+#   5. Set environment variable GROQ_API_KEY di dashboard Render
+#   6. Deploy!
+#
+# Free tier Render: 750 jam/bulan, sleep setelah 15 menit idle.
+# =============================================================================
+
 services:
   - type: web
     name: darpana
     runtime: node
     plan: free
-    region: singapore
-    buildCommand: npm install --include=dev && npm run build
+    region: singapore  # terdekat dengan Indonesia
+    buildCommand: npm install && npm run build
     startCommand: node server.js
     healthCheckPath: /api/health
     envVars:
       - key: NODE_ENV
         value: production
-      - key: NPM_CONFIG_PRODUCTION
-        value: "false"
       - key: GROQ_API_KEY
-        sync: false
+        sync: false  # isi manual di dashboard Render (jangan hardcode di sini)
       - key: GROQ_MODEL
         value: llama-3.3-70b-versatile
       - key: PORT

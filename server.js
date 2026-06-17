@@ -164,19 +164,154 @@ if (fs.existsSync(publicDir)) {
 
 // ---------------------------------------------------------------------------
 // Production: serve built Vite frontend (dist/) sebagai static files
+// (SPA fallback akan didaftarkan setelah semua API routes selesai)
 // ---------------------------------------------------------------------------
 const distDir = path.join(__dirname, 'dist')
 if (fs.existsSync(distDir)) {
   app.use(express.static(distDir))
-  // SPA fallback: semua route non-/api/* → index.html
-  app.get('*', (_req, res) => {
-    res.sendFile(path.join(distDir, 'index.html'))
-  })
 }
+
+// =============================================================================
+// RUANG RESONANSI — Feedback Endpoints
+//
+// Penyimpanan: JSONL files di ./data/ (auto-create dir)
+// Catatan: Pada Render free tier, file ini ephemeral (reset saat redeploy).
+// Untuk production sejati, ganti ke PostgreSQL (Render free Postgres available).
+// Data ini TIDAK kritikal — feedback voluntary dari user untuk Svadhyaya.
+// =============================================================================
+
+const DATA_DIR = path.join(__dirname, 'data')
+if (!fs.existsSync(DATA_DIR)) {
+  fs.mkdirSync(DATA_DIR, { recursive: true })
+}
+
+function appendJsonl(filename, obj) {
+  try {
+    const line = JSON.stringify({ ...obj, _ts: new Date().toISOString() }) + '\n'
+    fs.appendFileSync(path.join(DATA_DIR, filename), line)
+    return true
+  } catch (err) {
+    console.error('[resonance] append failed:', err.message)
+    return false
+  }
+}
+
+// --- POST /api/resonance/sadhana ---
+// Micro-feedback pasca-Sadhana: state before/after meditasi
+app.post('/api/resonance/sadhana', (req, res) => {
+  try {
+    const { practice_id, state_before, state_after, session_duration_sec, skipped } = req.body ?? {}
+
+    if (!practice_id) {
+      return res.status(400).json({ error: 'practice_id wajib diisi.' })
+    }
+
+    appendJsonl('resonance_logs.jsonl', {
+      practice_id,
+      state_before: state_before || null,
+      state_after: state_after || null,
+      session_duration_sec: session_duration_sec || null,
+      skipped: Boolean(skipped),
+    })
+
+    return res.json({ received: true, om_shanti: true })
+  } catch (err) {
+    console.error('[/api/resonance/sadhana] error:', err)
+    return res.status(500).json({ error: 'Gagal menerima pantulan.' })
+  }
+})
+
+// --- POST /api/resonance/ai ---
+// Resonance untuk jawaban AI: ripple (tetesan air) atau lontar (koreksi)
+app.post('/api/resonance/ai', (req, res) => {
+  try {
+    const { message_content, type, feedback_text } = req.body ?? {}
+
+    if (!message_content || !type) {
+      return res.status(400).json({ error: 'message_content dan type wajib diisi.' })
+    }
+
+    if (!['ripple', 'lontar'].includes(type)) {
+      return res.status(400).json({ error: 'type harus "ripple" atau "lontar".' })
+    }
+
+    appendJsonl('ai_resonance.jsonl', {
+      message_content: String(message_content).slice(0, 2000), // batasi panjang
+      type,
+      feedback_text: type === 'lontar' ? String(feedback_text || '').slice(0, 2000) : null,
+    })
+
+    return res.json({ received: true, om_shanti: true })
+  } catch (err) {
+    console.error('[/api/resonance/ai] error:', err)
+    return res.status(500).json({ error: 'Gagal menerima pantulan.' })
+  }
+})
+
+// --- POST /api/resonance/rta ---
+// Bug report / Rta imbalance — bantu developer menyeimbangkan sistem
+app.post('/api/resonance/rta', (req, res) => {
+  try {
+    const { section, description, user_context } = req.body ?? {}
+
+    if (!section || !description) {
+      return res.status(400).json({ error: 'section dan description wajib diisi.' })
+    }
+
+    if (!['peta_sanskara', 'ruang_sadhana', 'sumur_akasa', 'lainnya'].includes(section)) {
+      return res.status(400).json({ error: 'section tidak valid.' })
+    }
+
+    appendJsonl('rta_imbalances.jsonl', {
+      section,
+      description: String(description).slice(0, 5000),
+      user_context: user_context ? String(user_context).slice(0, 1000) : null,
+    })
+
+    return res.json({
+      received: true,
+      message: 'Pantulan Anda telah diterima. Kami akan segera menyeimbangkan kembali sistem ini. Om Shanti.',
+    })
+  } catch (err) {
+    console.error('[/api/resonance/rta] error:', err)
+    return res.status(500).json({ error: 'Gagal menerima pantulan.' })
+  }
+})
+
+// --- GET /api/resonance/stats ---
+// Statistik agregat (tanpa expose data individual) — untuk dashboard developer
+app.get('/api/resonance/stats', (_req, res) => {
+  try {
+    const stats = { resonance_logs: 0, ai_resonance: 0, rta_imbalances: 0 }
+    for (const key of Object.keys(stats)) {
+      const filepath = path.join(DATA_DIR, `${key}.jsonl`)
+      if (fs.existsSync(filepath)) {
+        const content = fs.readFileSync(filepath, 'utf-8')
+        stats[key] = content.split('\n').filter((l) => l.trim()).length
+      }
+    }
+    return res.json(stats)
+  } catch (err) {
+    console.error('[/api/resonance/stats] error:', err)
+    return res.status(500).json({ error: 'Gagal mengambil statistik.' })
+  }
+})
 
 app.use('/api', (_req, res) => {
   res.status(404).json({ error: 'Endpoint tidak ditemukan.' })
 })
+
+// SPA fallback: HARUS didaftarkan setelah semua API routes.
+// Route ini hanya catch GET request non-/api/* dan serve index.html (React Router handle sisanya).
+if (fs.existsSync(distDir)) {
+  app.get('*', (req, res, next) => {
+    // Jangan intercept /api/* routes (sudah di-handle di atas)
+    if (req.path.startsWith('/api/')) {
+      return res.status(404).json({ error: 'Endpoint tidak ditemukan.' })
+    }
+    res.sendFile(path.join(distDir, 'index.html'))
+  })
+}
 
 app.use((err, _req, res, _next) => {
   console.error('Unhandled error:', err)

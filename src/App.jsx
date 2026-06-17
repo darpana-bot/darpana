@@ -26,11 +26,17 @@ import {
   VolumeX,
   Flame as FlameIcon,
   ExternalLink,
+  Droplet,
+  Scroll,
+  Scale,
+  Sparkle,
 } from 'lucide-react'
 import { wukuData, getWukuByDate } from './data/wukuData.js'
 import { sadhanaPractices, getSadhanaPractice, getRecommendedPracticeForWuku } from './data/sadhanaData.js'
 import { LanguageProvider, useLanguage } from './contexts/LanguageContext.jsx'
 import { LANGUAGES, getT } from './i18n/translations.js'
+import { getEvolutionEntries } from './data/evolutionData.js'
+import { logSadhanaResonance, logAIResonance, submitRtaImbalance } from './utils/resonance.js'
 
 // =============================================================================
 // Konstanta animasi — lambat, easeInOut sesuai design system
@@ -309,6 +315,30 @@ function Home({ onNavigate }) {
         <FlameIcon size={11} strokeWidth={1.5} />
         <span className="uppercase tracking-[0.2em]">{t('danaPunia', 'title')}</span>
       </motion.button>
+
+      {/* Tautan super halus ke Rta + Jejak Evolusi — sepasang kecil */}
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 1.8, duration: 1.6 }}
+        className="mt-2 flex items-center justify-center gap-4 text-[9px] text-sand/30"
+      >
+        <button
+          onClick={() => onNavigate('rta')}
+          className="flex items-center gap-1 px-2 py-1 hover:text-sand/60 transition-colors"
+        >
+          <Scale size={10} strokeWidth={1.5} />
+          <span className="uppercase tracking-[0.15em]">{t('homeLinks', 'rta')}</span>
+        </button>
+        <span className="text-sand/15">·</span>
+        <button
+          onClick={() => onNavigate('evolution')}
+          className="flex items-center gap-1 px-2 py-1 hover:text-sand/60 transition-colors"
+        >
+          <Sparkle size={10} strokeWidth={1.5} />
+          <span className="uppercase tracking-[0.15em]">{t('homeLinks', 'evolution')}</span>
+        </button>
+      </motion.div>
     </motion.div>
   )
 }
@@ -752,24 +782,149 @@ function AkasaChat({ onNavigate, initialContext }) {
   )
 }
 
-function ChatBubble({ role, content }) {
+function ChatBubble({ role, content, index }) {
+  const { lang } = useLanguage()
+  const t = getT(lang)
   const isUser = role === 'user'
+
+  // Resonance state (hanya untuk AI messages)
+  const [rippleActive, setRippleActive] = useState(false)
+  const [rippleCount, setRippleCount] = useState(0)
+  const [showLontar, setShowLontar] = useState(false)
+  const [lontarText, setLontarText] = useState('')
+  const [lontarSubmitted, setLontarSubmitted] = useState(false)
+
+  const handleRipple = () => {
+    if (rippleActive) return
+    setRippleActive(true)
+    setRippleCount((c) => c + 1)
+    // Send async, silent
+    logAIResonance({ message_content: content, type: 'ripple' })
+    // Reset animation after 2s
+    setTimeout(() => setRippleActive(false), 2000)
+  }
+
+  const handleLontarSubmit = () => {
+    if (!lontarText.trim()) return
+    logAIResonance({ message_content: content, type: 'lontar', feedback_text: lontarText })
+    setLontarSubmitted(true)
+    setTimeout(() => {
+      setShowLontar(false)
+      setLontarSubmitted(false)
+      setLontarText('')
+    }, 2500)
+  }
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       transition={SLOW}
-      className={`flex ${isUser ? 'justify-end' : 'justify-start'}`}
+      className={`flex flex-col ${isUser ? 'items-end' : 'items-start'} w-full`}
     >
-      <div
-        className={`max-w-[85%] px-4 py-3 rounded-3xl text-sm leading-relaxed whitespace-pre-wrap ${
-          isUser
-            ? 'bg-gold-dim/30 border border-gold/20 rounded-br-md text-sand'
-            : 'bg-slate/70 border border-sand/5 rounded-bl-md text-sand/90'
-        }`}
-      >
-        {content}
+      <div className="relative">
+        {/* Ripple overlay (only for AI when rippleActive) */}
+        {rippleActive && (
+          <motion.div
+            initial={{ scale: 0.8, opacity: 0.5 }}
+            animate={{ scale: 1.5, opacity: 0 }}
+            transition={{ duration: 1.8, ease: 'easeOut' }}
+            className="absolute inset-0 rounded-3xl border-2 border-sage pointer-events-none"
+            style={{ zIndex: 1 }}
+          />
+        )}
+        <div
+          className={`relative max-w-[85%] px-4 py-3 rounded-3xl text-sm leading-relaxed whitespace-pre-wrap ${
+            isUser
+              ? 'bg-gold-dim/30 border border-gold/20 rounded-br-md text-sand'
+              : 'bg-slate/70 border border-sand/5 rounded-bl-md text-sand/90'
+          }`}
+        >
+          {content}
+        </div>
       </div>
+
+      {/* Resonance actions — only for AI messages */}
+      {!isUser && (
+        <div className="flex items-center gap-1 mt-1.5 ml-1">
+          <button
+            onClick={handleRipple}
+            title={t('aiResonance', 'rippleHint')}
+            className={`p-1.5 rounded-full transition-all ${
+              rippleActive
+                ? 'bg-sage/30 text-sage scale-110'
+                : 'text-sand/30 hover:text-sage hover:bg-sage/10'
+            }`}
+          >
+            <Droplet size={13} strokeWidth={1.5} fill={rippleCount > 0 ? 'currentColor' : 'none'} />
+          </button>
+          <button
+            onClick={() => setShowLontar((s) => !s)}
+            title={t('aiResonance', 'lontarHint')}
+            className={`p-1.5 rounded-full transition-all ${
+              showLontar || lontarSubmitted
+                ? 'bg-gold/20 text-gold'
+                : 'text-sand/30 hover:text-gold hover:bg-gold/10'
+            }`}
+          >
+            <Scroll size={13} strokeWidth={1.5} />
+          </button>
+          {rippleCount > 0 && (
+            <span className="text-[9px] text-sage/50 ml-1 tabular-nums">{rippleCount}</span>
+          )}
+        </div>
+      )}
+
+      {/* Lontar feedback form — inline, only for AI */}
+      {!isUser && showLontar && !lontarSubmitted && (
+        <motion.div
+          initial={{ opacity: 0, height: 0 }}
+          animate={{ opacity: 1, height: 'auto' }}
+          exit={{ opacity: 0, height: 0 }}
+          transition={SLOW}
+          className="mt-2 ml-1 max-w-[85%] w-full"
+        >
+          <div className="p-3 rounded-2xl bg-slate/60 border border-gold/15">
+            <p className="text-[10px] text-gold/70 mb-2 italic">{t('aiResonance', 'lontarPrompt')}</p>
+            <textarea
+              value={lontarText}
+              onChange={(e) => setLontarText(e.target.value)}
+              rows={2}
+              autoFocus
+              className="w-full px-3 py-2 rounded-xl bg-slate/80 border border-sand/10 text-sand text-xs resize-none focus:outline-none focus:border-gold/40 transition-colors"
+            />
+            <div className="flex justify-end gap-2 mt-2">
+              <button
+                onClick={() => {
+                  setShowLontar(false)
+                  setLontarText('')
+                }}
+                className="px-3 py-1 text-[10px] text-sand/50 hover:text-sand transition-colors uppercase tracking-wider"
+              >
+                {t('aiResonance', 'lontarCancel')}
+              </button>
+              <button
+                onClick={handleLontarSubmit}
+                disabled={!lontarText.trim()}
+                className="px-3 py-1 text-[10px] bg-gold/30 text-gold rounded-full hover:bg-gold/40 transition-colors uppercase tracking-wider disabled:opacity-30"
+              >
+                {t('aiResonance', 'lontarSubmit')}
+              </button>
+            </div>
+          </div>
+        </motion.div>
+      )}
+
+      {/* Lontar submitted confirmation */}
+      {!isUser && lontarSubmitted && (
+        <motion.p
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          className="mt-1 ml-1 text-[10px] text-gold/60 italic"
+        >
+          {t('aiResonance', 'lontarThanks')}
+        </motion.p>
+      )}
     </motion.div>
   )
 }
@@ -964,6 +1119,12 @@ function SadhanaSession({ practice, onNavigate, lang }) {
   const [audioMuted, setAudioMuted] = useState(false)
   const [audioError, setAudioError] = useState(null)
   const [showHeadphoneNotice, setShowHeadphoneNotice] = useState(true)
+
+  // Ruang Resonansi — micro-feedback pasca-Sadhana state
+  const sessionStartRef = useRef(Date.now())
+  const [stateBefore, setStateBefore] = useState(null)
+  const [stateAfter, setStateAfter] = useState(null)
+  const [feedbackSkipped, setFeedbackSkipped] = useState(false)
 
   // Refs untuk 3 audio layers
   const ambientAudioRef = useRef(null)
@@ -1224,6 +1385,43 @@ function SadhanaSession({ practice, onNavigate, lang }) {
     return t('sadhana', currentPhase.name)
   })()
 
+  // Micro-feedback states (5 options)
+  const stateOptions = [
+    { key: 'kacau', color: '#7B3F3F' },
+    { key: 'gelisah', color: '#9B6B43' },
+    { key: 'biasa', color: '#7A8B70' },
+    { key: 'tenang', color: '#5A8F8A' },
+    { key: 'jernih', color: '#C29B57' },
+  ]
+
+  const handleFeedbackSubmit = () => {
+    const durationSec = Math.floor((Date.now() - sessionStartRef.current) / 1000)
+    logSadhanaResonance({
+      practice_id: practice.id,
+      state_before: stateBefore,
+      state_after: stateAfter,
+      session_duration_sec: durationSec,
+      skipped: false,
+    })
+    // Move to final button reveal
+    setFeedbackSkipped(true) // reuse flag to mark "feedback done"
+  }
+
+  const handleFeedbackSkip = () => {
+    const durationSec = Math.floor((Date.now() - sessionStartRef.current) / 1000)
+    logSadhanaResonance({
+      practice_id: practice.id,
+      state_before: null,
+      state_after: null,
+      session_duration_sec: durationSec,
+      skipped: true,
+    })
+    setFeedbackSkipped(true)
+  }
+
+  // Micro-feedback complete: both states selected OR skipped
+  const feedbackDone = feedbackSkipped || (stateBefore && stateAfter)
+
   if (isComplete) {
     return (
       <motion.div
@@ -1237,31 +1435,122 @@ function SadhanaSession({ practice, onNavigate, lang }) {
           initial={{ scale: 0.8, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
           transition={{ delay: 0.3, ...SLOWER }}
-          className="p-5 rounded-full bg-gold/10 mb-8"
+          className="p-5 rounded-full bg-gold/10 mb-6"
         >
-          <Flower size={56} strokeWidth={1.2} className="text-gold" />
+          <Flower size={48} strokeWidth={1.2} className="text-gold" />
         </motion.div>
 
-        <motion.p
-          initial={{ opacity: 0, y: 8 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.6, ...SLOW }}
-          className="text-sand/70 text-sm leading-relaxed max-w-sm mb-10"
-        >
-          {t('sadhana', 'grounding')}
-        </motion.p>
+        {/* === RUANG RESONANSI — Micro-Feedback === */}
+        {!feedbackDone ? (
+          <motion.div
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.6, ...SLOW }}
+            className="w-full max-w-md mb-6"
+          >
+            {/* Two circles side by side */}
+            <div className="grid grid-cols-2 gap-4 mb-4">
+              {/* Circle 1: Before */}
+              <div>
+                <p className="text-[10px] uppercase tracking-[0.2em] text-sand/40 mb-2">
+                  {t('resonance', 'beforeTitle')}
+                </p>
+                <p className="text-[10px] text-sand/50 mb-3 italic">{t('resonance', 'beforeHint')}</p>
+                <div className="space-y-1.5">
+                  {stateOptions.map((opt) => (
+                    <button
+                      key={`before-${opt.key}`}
+                      onClick={() => setStateBefore(opt.key)}
+                      className={`w-full px-2.5 py-1.5 rounded-full text-[10px] transition-all border ${
+                        stateBefore === opt.key
+                          ? 'border-2 text-sand'
+                          : 'border-sand/10 text-sand/50 hover:border-sand/30'
+                      }`}
+                      style={stateBefore === opt.key ? { borderColor: opt.color, backgroundColor: `${opt.color}25` } : {}}
+                    >
+                      {t('resonance', `state_${opt.key}`)}
+                    </button>
+                  ))}
+                </div>
+              </div>
 
-        <motion.button
-          initial={{ opacity: 0, y: 8 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 1.2, ...SLOW }}
-          whileHover={{ scale: 1.03 }}
-          whileTap={{ scale: 0.97 }}
-          onClick={() => onNavigate('home')}
-          className="px-8 py-4 rounded-3xl bg-gold/90 text-obsidian font-medium hover:bg-gold transition-colors"
-        >
-          {t('sadhana', 'returnTo')}
-        </motion.button>
+              {/* Circle 2: After */}
+              <div>
+                <p className="text-[10px] uppercase tracking-[0.2em] text-gold/60 mb-2">
+                  {t('resonance', 'afterTitle')}
+                </p>
+                <p className="text-[10px] text-sand/50 mb-3 italic">{t('resonance', 'afterHint')}</p>
+                <div className="space-y-1.5">
+                  {stateOptions.map((opt) => (
+                    <button
+                      key={`after-${opt.key}`}
+                      onClick={() => setStateAfter(opt.key)}
+                      disabled={!stateBefore}
+                      className={`w-full px-2.5 py-1.5 rounded-full text-[10px] transition-all border disabled:opacity-30 ${
+                        stateAfter === opt.key
+                          ? 'border-2 text-sand'
+                          : 'border-sand/10 text-sand/50 hover:border-sand/30'
+                      }`}
+                      style={stateAfter === opt.key ? { borderColor: opt.color, backgroundColor: `${opt.color}25` } : {}}
+                    >
+                      {t('resonance', `state_${opt.key}`)}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {/* Submit + Skip */}
+            <div className="flex items-center justify-center gap-3 mt-4">
+              <button
+                onClick={handleFeedbackSkip}
+                className="text-[10px] text-sand/40 hover:text-sand/70 uppercase tracking-[0.2em] transition-colors"
+              >
+                {t('resonance', 'skip')}
+              </button>
+              <button
+                onClick={handleFeedbackSubmit}
+                disabled={!stateBefore || !stateAfter}
+                className="px-5 py-2 rounded-full bg-gold/30 text-gold text-[11px] uppercase tracking-[0.15em] hover:bg-gold/40 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+              >
+                ✓
+              </button>
+            </div>
+          </motion.div>
+        ) : (
+          <>
+            {/* Thanks message after feedback done */}
+            <motion.p
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={SLOW}
+              className="text-sand/60 text-xs italic mb-6"
+            >
+              {!feedbackSkipped || (stateBefore && stateAfter) ? t('resonance', 'thanks') : ''}
+            </motion.p>
+
+            <motion.p
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.4, ...SLOW }}
+              className="text-sand/70 text-sm leading-relaxed max-w-sm mb-8"
+            >
+              {t('sadhana', 'grounding')}
+            </motion.p>
+
+            <motion.button
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.8, ...SLOW }}
+              whileHover={{ scale: 1.03 }}
+              whileTap={{ scale: 0.97 }}
+              onClick={() => onNavigate('home')}
+              className="px-8 py-4 rounded-3xl bg-gold/90 text-obsidian font-medium hover:bg-gold transition-colors"
+            >
+              {t('sadhana', 'returnTo')}
+            </motion.button>
+          </>
+        )}
       </motion.div>
     )
   }
@@ -1722,6 +2011,303 @@ function PromiseItem({ text }) {
 
 
 // =============================================================================
+// LAYAR I: RTA — Menjaga Keseimbangan Sistem (Bug Report)
+// =============================================================================
+function RtaImbalance({ onNavigate }) {
+  const { lang } = useLanguage()
+  const t = getT(lang)
+
+  const [section, setSection] = useState('')
+  const [description, setDescription] = useState('')
+  const [context, setContext] = useState('')
+  const [submitting, setSubmitting] = useState(false)
+  const [submitted, setSubmitted] = useState(false)
+  const [error, setError] = useState(null)
+
+  const sectionOptions = [
+    { value: 'peta_sanskara', label: t('rta', 'section_peta_sanskara') },
+    { value: 'ruang_sadhana', label: t('rta', 'section_ruang_sadhana') },
+    { value: 'sumur_akasa', label: t('rta', 'section_sumur_akasa') },
+    { value: 'lainnya', label: t('rta', 'section_lainnya') },
+  ]
+
+  const handleSubmit = async () => {
+    setError(null)
+    if (!section) {
+      setError(t('rta', 'needSection'))
+      return
+    }
+    if (!description.trim()) {
+      setError(t('rta', 'needDescription'))
+      return
+    }
+
+    setSubmitting(true)
+    try {
+      await submitRtaImbalance({
+        section,
+        description: description.trim(),
+        user_context: context.trim() || null,
+      })
+      setSubmitted(true)
+    } catch (err) {
+      setError(err.message)
+    } finally {
+      setSubmitting(false)
+    }
+  }
+
+  return (
+    <motion.div
+      key="rta"
+      {...FADE_UP}
+      className="min-h-[100dvh] px-6 pt-16 pb-12"
+    >
+      <button
+        onClick={() => onNavigate('home')}
+        className="flex items-center gap-2 text-sand/50 hover:text-sand transition-colors mb-10 self-start text-sm"
+      >
+        <ArrowLeft size={16} /> {t('rta', 'backHome')}
+      </button>
+
+      <div className="max-w-md w-full mx-auto">
+        {/* Header — Scale icon (keseimbangan) */}
+        <motion.div
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={SLOWER}
+          className="flex flex-col items-center mb-8"
+        >
+          <div className="p-5 rounded-full bg-sage/10 mb-4">
+            <Scale size={40} strokeWidth={1.3} className="text-sage" />
+          </div>
+          <h1 className="font-heading text-2xl text-sand mb-1 text-center">
+            {t('rta', 'title')}
+          </h1>
+          <p className="text-sand/40 text-xs uppercase tracking-[0.3em] text-center">
+            {t('rta', 'subtitle')}
+          </p>
+        </motion.div>
+
+        {/* Intro */}
+        <motion.p
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.2, ...SLOW }}
+          className="text-sand/65 text-xs leading-relaxed text-center mb-8 italic"
+        >
+          {t('rta', 'intro')}
+        </motion.p>
+
+        {submitted ? (
+          /* Success screen */
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={SLOWER}
+            className="text-center py-8"
+          >
+            <div className="p-4 rounded-full bg-sage/10 w-fit mx-auto mb-6">
+              <Scale size={32} strokeWidth={1.3} className="text-sage" />
+            </div>
+            <p className="text-sand/80 text-sm leading-relaxed max-w-xs mx-auto mb-8">
+              {t('rta', 'success')}
+            </p>
+            <button
+              onClick={() => onNavigate('home')}
+              className="px-6 py-3 rounded-2xl bg-sage/30 text-sage font-medium hover:bg-sage/40 transition-colors text-sm"
+            >
+              {t('rta', 'backHome')}
+            </button>
+          </motion.div>
+        ) : (
+          /* Form */
+          <motion.div
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.3, ...SLOW }}
+            className="space-y-5"
+          >
+            {/* Section selector */}
+            <div>
+              <label className="block text-[10px] uppercase tracking-[0.2em] text-sand/50 mb-3">
+                {t('rta', 'sectionLabel')}
+              </label>
+              <div className="grid grid-cols-2 gap-2">
+                {sectionOptions.map((opt) => (
+                  <button
+                    key={opt.value}
+                    onClick={() => setSection(opt.value)}
+                    className={`px-3 py-2.5 rounded-2xl text-xs transition-all border ${
+                      section === opt.value
+                        ? 'border-sage bg-sage/20 text-sand'
+                        : 'border-sand/10 bg-slate/30 text-sand/60 hover:border-sage/30'
+                    }`}
+                  >
+                    {opt.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Description */}
+            <div>
+              <label className="block text-[10px] uppercase tracking-[0.2em] text-sand/50 mb-2">
+                {t('rta', 'descriptionLabel')}
+              </label>
+              <textarea
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                rows={4}
+                placeholder={t('rta', 'descriptionPlaceholder')}
+                className="w-full px-4 py-3 rounded-2xl bg-slate/60 border border-sand/10 text-sand text-sm resize-none focus:outline-none focus:border-sage/40 transition-colors placeholder:text-sand/30"
+              />
+            </div>
+
+            {/* Context (optional) */}
+            <div>
+              <label className="block text-[10px] uppercase tracking-[0.2em] text-sand/40 mb-2">
+                {t('rta', 'contextLabel')}
+              </label>
+              <textarea
+                value={context}
+                onChange={(e) => setContext(e.target.value)}
+                rows={2}
+                placeholder={t('rta', 'contextPlaceholder')}
+                className="w-full px-4 py-3 rounded-2xl bg-slate/40 border border-sand/5 text-sand text-xs resize-none focus:outline-none focus:border-sage/30 transition-colors placeholder:text-sand/30"
+              />
+            </div>
+
+            {/* Error */}
+            {error && (
+              <p className="text-[11px] text-gold/70 italic">{error}</p>
+            )}
+
+            {/* Submit */}
+            <motion.button
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              onClick={handleSubmit}
+              disabled={submitting}
+              className="w-full py-3.5 rounded-2xl bg-sage/30 border border-sage/40 text-sage font-medium hover:bg-sage/40 transition-colors disabled:opacity-50"
+            >
+              {submitting ? t('rta', 'submitting') : t('rta', 'submit')}
+            </motion.button>
+          </motion.div>
+        )}
+      </div>
+    </motion.div>
+  )
+}
+
+
+// =============================================================================
+// LAYAR J: JEJAK EVOLUSI — The Changelog of Consciousness
+// =============================================================================
+function JejakEvolusi({ onNavigate }) {
+  const { lang } = useLanguage()
+  const t = getT(lang)
+  const entries = getEvolutionEntries()
+
+  return (
+    <motion.div
+      key="evolution"
+      {...FADE_UP}
+      className="min-h-[100dvh] px-6 pt-16 pb-12"
+    >
+      <button
+        onClick={() => onNavigate('home')}
+        className="flex items-center gap-2 text-sand/50 hover:text-sand transition-colors mb-10 self-start text-sm"
+      >
+        <ArrowLeft size={16} /> {t('rta', 'backHome')}
+      </button>
+
+      <div className="max-w-md w-full mx-auto">
+        {/* Header */}
+        <motion.div
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={SLOWER}
+          className="flex flex-col items-center mb-6"
+        >
+          <div className="p-5 rounded-full bg-gold/10 mb-4">
+            <Sparkle size={40} strokeWidth={1.3} className="text-gold" />
+          </div>
+          <h1 className="font-heading text-2xl text-sand mb-1 text-center">
+            {t('evolution', 'title')}
+          </h1>
+          <p className="text-sand/40 text-xs uppercase tracking-[0.3em] text-center">
+            {t('evolution', 'subtitle')}
+          </p>
+        </motion.div>
+
+        {/* Intro */}
+        <motion.p
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.2, ...SLOW }}
+          className="text-sand/65 text-xs leading-relaxed text-center mb-8 italic"
+        >
+          {t('evolution', 'intro')}
+        </motion.p>
+
+        {/* Timeline */}
+        {entries.length === 0 ? (
+          <p className="text-sand/40 text-sm text-center italic">{t('evolution', 'noEntries')}</p>
+        ) : (
+          <div className="relative">
+            {/* Vertical line */}
+            <div className="absolute left-3 top-0 bottom-0 w-px bg-gold/15" />
+
+            <div className="space-y-6">
+              {entries.map((entry, i) => (
+                <motion.div
+                  key={i}
+                  initial={{ opacity: 0, x: -8 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: 0.3 + i * 0.1, ...SLOW }}
+                  className="relative pl-10"
+                >
+                  {/* Dot on timeline */}
+                  <div
+                    className={`absolute left-2 top-2 w-3 h-3 rounded-full border-2 ${
+                      entry.based_on_resonance ? 'bg-sage border-sage' : 'bg-gold border-gold'
+                    }`}
+                  />
+
+                  {/* Entry card */}
+                  <div className="p-4 rounded-2xl bg-slate/40 border border-sand/5">
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-[10px] uppercase tracking-wider text-sand/40">
+                        {new Date(entry.date).toLocaleDateString(lang === 'id' ? 'id-ID' : lang === 'ja' ? 'ja-JP' : lang === 'zh' ? 'zh-CN' : 'en-US', {
+                          year: 'numeric',
+                          month: 'long',
+                          day: 'numeric',
+                        })}
+                      </span>
+                      <span className="text-[10px] text-gold/50 tabular-nums">v{entry.version}</span>
+                    </div>
+                    <h3 className="font-heading text-base text-sand mb-2">{entry.title}</h3>
+                    <p className="text-sand/60 text-xs leading-relaxed mb-2">{entry.body}</p>
+                    {entry.based_on_resonance && (
+                      <p className="text-[10px] text-sage/60 italic flex items-center gap-1">
+                        <Droplet size={9} strokeWidth={1.5} fill="currentColor" />
+                        {t('evolution', 'basedOnResonance')}
+                      </p>
+                    )}
+                  </div>
+                </motion.div>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
+    </motion.div>
+  )
+}
+
+
+// =============================================================================
 // APP — root navigator (wrapped with LanguageProvider)
 // =============================================================================
 function AppInner() {
@@ -1794,6 +2380,10 @@ function AppInner() {
         )}
 
         {screen === 'dana_punia' && <DanaPunia key="dp" onNavigate={navigate} />}
+
+        {screen === 'rta' && <RtaImbalance key="rta" onNavigate={navigate} />}
+
+        {screen === 'evolution' && <JejakEvolusi key="evo" onNavigate={navigate} />}
       </AnimatePresence>
     </div>
   )
