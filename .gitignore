@@ -1,0 +1,54 @@
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+build/
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Environment variables (JANGAN commit file .env yang berisi API key asli)
+.env
+.env.local
+.env.*.local
+
+# Tetap keep .env.example (template tanpa secrets)
+!.env.example
+
+# Editor / IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Runtime
+*.pid
+*.seed
+*.pid.lock
+
+# Z.ai SDK config (jangan commit ke public repo)
+.z-ai-config
+
+# Cache
+.cache/
+.parcel-cache/
+.vite/
+.eslintcache
+
+# Test coverage
+coverage/
+*.lcov
+
+# Misc
+.tmp/
+tmp/
